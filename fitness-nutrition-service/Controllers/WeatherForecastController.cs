@@ -19,6 +19,7 @@ namespace fitness_nutrition_service.Controllers
         }
 
         [HttpGet(Name = "GetWeatherForecast")]
+        [ApiExplorerSettings(IgnoreApi = true)]
         public IEnumerable<WeatherForecast> Get()
         {
             return Enumerable.Range(1, 5).Select(index => new WeatherForecast

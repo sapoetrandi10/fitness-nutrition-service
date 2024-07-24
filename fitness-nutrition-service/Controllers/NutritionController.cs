@@ -23,7 +23,7 @@ namespace fitness_nutrition_service.Controllers
                 if (nutritionReq == null)
                     return BadRequest(new
                     {
-                        status = "failed",
+                        status = "Failed",
                         message = "Requset not valid"
                     });
 
@@ -33,18 +33,12 @@ namespace fitness_nutrition_service.Controllers
 
                 if (isNutritionExist != null)
                 {
-                    ModelState.AddModelError("", "Nutrition already exists");
-                    if (!ModelState.IsValid)
+                    return Ok(new
                     {
-                        var errors = ModelState.Values.SelectMany(v => v.Errors)
-                                              .Select(e => e.ErrorMessage)
-                                              .ToList();
-                        return BadRequest(new
-                        {
-                            status = "failed",
-                            errors = errors
-                        });
-                    }
+                        status = "Success",
+                        message = "Nutrition already exists",
+                        data = isNutritionExist
+                    });
                 }
 
                 var nutrition = new Nutrition
@@ -58,21 +52,25 @@ namespace fitness_nutrition_service.Controllers
 
                 if (!_nutritionRep.CreateNutrition(nutrition))
                 {
-                    ModelState.AddModelError("", "Something went wrong while saving");
-                    return StatusCode(500, ModelState);
+                    return StatusCode(500, new
+                    {
+                        status = "Success",
+                        message = "Something went wrong while saving",
+                    });
                 }
 
                 return Ok(new
                 {
-                    status = "success",
-                    message = "Nutrition Successfully created"
+                    status = "Success",
+                    message = "Nutrition Successfully created",
+                    data = nutrition
                 });
             }
             catch (Exception e)
             {
                 return BadRequest(new
                 {
-                    status = "failed",
+                    status = "Failed",
                     message = e.Message
                 });
                 throw;
@@ -82,123 +80,174 @@ namespace fitness_nutrition_service.Controllers
         [HttpPut("{nutritionId}")]
         public IActionResult UpdateNutrition(int nutritionId, [FromBody] ReqNutritionDto nutritionReq)
         {
-            if (nutritionReq == null)
-                return BadRequest(new
-                {
-                    status = "failed",
-                    message = "Requset not valid"
-                });
-
-            var isNutritionExist = _nutritionRep.GetNutritions()
-                    .Where(u => u.NutritionID == nutritionId)
-                    .FirstOrDefault();
-
-            if (isNutritionExist == null)
-                return NotFound(new
-                {
-                    status = "failed",
-                    message = "Nutrition not found!"
-                });
-
-
-            isNutritionExist.NutritionID = nutritionId;
-            isNutritionExist.NutritionName = nutritionReq.NutritionName;
-            isNutritionExist.Calories = nutritionReq.Calories;
-            isNutritionExist.Protein = nutritionReq.Protein;
-            isNutritionExist.Carbs = nutritionReq.Carbs;
-            isNutritionExist.Fat = nutritionReq.Fat;
-
-            var updatedNutrition = _nutritionRep.UpdateNutrition(isNutritionExist);
-            if (updatedNutrition == null)
+            try
             {
-                ModelState.AddModelError("", "Something went wrong updating nutrition");
-                return StatusCode(500, new
+                if (nutritionReq == null)
+                    return BadRequest(new
+                    {
+                        status = "Failed",
+                        message = "Requset not valid"
+                    });
+
+                var isNutritionExist = _nutritionRep.GetNutritions()
+                        .Where(u => u.NutritionID == nutritionId)
+                        .FirstOrDefault();
+
+                if (isNutritionExist == null)
+                    return Ok(new
+                    {
+                        status = "Success",
+                        message = "Nutrition not found!",
+                        data = isNutritionExist
+                    });
+
+
+                isNutritionExist.NutritionID = nutritionId;
+                isNutritionExist.NutritionName = nutritionReq.NutritionName;
+                isNutritionExist.Calories = nutritionReq.Calories;
+                isNutritionExist.Protein = nutritionReq.Protein;
+                isNutritionExist.Carbs = nutritionReq.Carbs;
+                isNutritionExist.Fat = nutritionReq.Fat;
+
+                var updatedNutrition = _nutritionRep.UpdateNutrition(isNutritionExist);
+                if (updatedNutrition == null)
                 {
-                    status = "failed",
-                    message = "Something went wrong updating nutrition"
+                    ModelState.AddModelError("", "Something went wrong updating nutrition");
+                    return StatusCode(500, new
+                    {
+                        status = "failed",
+                        message = "Something went wrong updating nutrition"
+                    });
+                }
+
+                return Ok(new
+                {
+                    status = "success",
+                    message = "Nutrition Successfully updated",
+                    data = updatedNutrition
                 });
             }
-
-            return Ok(new
+            catch (Exception e)
             {
-                status = "success",
-                message = "Nutrition Successfully updated",
-                data = updatedNutrition
-            });
+                return BadRequest(new
+                {
+                    status = "Failed",
+                    message = e.Message,
+                    InnerException = e.InnerException.Message
+                });
+            }
         }
 
         [HttpDelete("{nutritionId}")]
         public IActionResult DeleteNutrition(int nutritionId)
         {
-            var isNutritionExist = _nutritionRep.GetNutritions()
+            try
+            {
+                var isNutritionExist = _nutritionRep.GetNutritions()
                     .Where(u => u.NutritionID == nutritionId)
                     .FirstOrDefault();
 
-            if (isNutritionExist == null)
-                return NotFound(new
-                {
-                    status = "failed",
-                    message = "Nutrition not found!"
-                });
+                if (isNutritionExist == null)
+                    return Ok(new
+                    {
+                        status = "Success",
+                        message = "Nutrition not found!"
+                    });
 
-            if (!_nutritionRep.DeleteNutrition(isNutritionExist))
+                if (!_nutritionRep.DeleteNutrition(isNutritionExist))
+                {
+                    return StatusCode(500, new
+                    {
+                        status = "Failed",
+                        message = "Something went wrong deleting nutrition!"
+                    });
+                }
+
+                return Ok(new
+                {
+                    status = "Success",
+                    message = "Nutrition Successfully Deleted"
+                });
+            }
+            catch (Exception e)
             {
                 return BadRequest(new
                 {
-                    status = "failed",
-                    message = "Something went wrong deleting nutrition!"
+                    status = "Failed",
+                    message = e.Message,
+                    InnerException = e.InnerException.Message
                 });
             }
-
-            return Ok(new
-            {
-                status = "success",
-                message = "Nutrition Successfully Deleted"
-            });
         }
 
         [HttpGet]
         public IActionResult GetNutritions()
         {
-            var allNutritions = _nutritionRep.GetNutritions();
-
-            if (allNutritions.Count <= 0)
+            try
             {
-                return NotFound(new
+                var allNutritions = _nutritionRep.GetNutritions();
+
+                if (allNutritions.Count <= 0)
                 {
-                    status = "failed",
-                    message = "Nutrition is empty!"
+                    return NotFound(new
+                    {
+                        status = "Success",
+                        message = "Nutrition is empty!",
+                        data = allNutritions
+                    });
+                }
+
+                return Ok(new
+                {
+                    status = "Success",
+                    message = "All Nutrition Successfully fetched",
+                    data = allNutritions
                 });
             }
-
-            return Ok(new
+            catch (Exception e)
             {
-                status = "success",
-                message = "All Nutrition Successfully fetched",
-                data = allNutritions
-            });
+                return BadRequest(new
+                {
+                    status = "Failed",
+                    message = e.Message,
+                    InnerException = e.InnerException.Message
+                });
+            }
         }
 
         [HttpGet("{nutritionId}")]
         public IActionResult GetNutrition(int nutritionId)
         {
-            var nutrition = _nutritionRep.GetNutrition(nutritionId);
-
-            if (nutrition == null)
+            try
             {
-                return NotFound(new
+                var nutrition = _nutritionRep.GetNutrition(nutritionId);
+
+                if (nutrition == null)
                 {
-                    status = "failed",
-                    message = "Nutrition not found!"
+                    return Ok(new
+                    {
+                        status = "Success",
+                        message = "Nutrition not found!",
+                        data = nutrition
+                    });
+                }
+
+                return Ok(new
+                {
+                    status = "Success",
+                    message = "Nutrition Successfully fetched",
+                    data = nutrition
                 });
             }
-
-            return Ok(new
+            catch (Exception e)
             {
-                status = "success",
-                message = "Nutrition Successfully fetched",
-                data = nutrition
-            });
+                return BadRequest(new
+                {
+                    status = "Failed",
+                    message = e.Message,
+                    InnerException = e.InnerException.Message
+                });
+            }
         }
     }
 }

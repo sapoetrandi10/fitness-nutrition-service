@@ -2,6 +2,7 @@ using fitness_db.Data;
 using fitness_db.Interfaces;
 using fitness_db.Repositories;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace fitness_nutrition_service
 {
@@ -13,6 +14,7 @@ namespace fitness_nutrition_service
 
             // Add services to the container.
             bool useCors = builder.Configuration.GetValue<bool>("CorsSettings:UseCors");
+            
             if (useCors)
             {
                 string[] allowedOrigins = useCors
@@ -44,7 +46,8 @@ namespace fitness_nutrition_service
             builder.Services.AddSwaggerGen();
 
 
-            var app = builder.Build();
+            var app = builder.Build();        
+
 
             if (useCors)
             {

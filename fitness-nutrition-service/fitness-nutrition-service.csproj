@@ -25,4 +25,8 @@
     <ProjectReference Include="..\..\fitness-db\fitness-db\fitness-db.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Logs\" />
+  </ItemGroup>
+
 </Project>
